@@ -25,6 +25,11 @@ async def on_ready():
     await bot.add_cog(TuringMachine(bot))
     synced=await bot.tree.sync()
     print("Slash Command " + str(len(synced))) 
+    
+@bot.command()
+async def sync(ctx):
+    await bot.tree.sync()
+    print("synced")
 
 load_dotenv()
 bot.run(os.environ.get('TOKEN'))

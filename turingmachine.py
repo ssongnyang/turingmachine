@@ -234,9 +234,59 @@ class TuringMachine(commands.Cog):
         ["1이 없습니다", "1이 1번 나타납니다", "1이 2번 나타납니다","3이 없습니다", "3이 1번 나타납니다", "3이 2번 나타납니다"],
         ["3이 없습니다", "3이 1번 나타납니다", "3이 2번 나타납니다","4가 없습니다", "4가 1번 나타납니다", "4가 2번 나타납니다"],
         ["1이 없습니다", "1이 1번 나타납니다", "1이 2번 나타납니다","4가 없습니다", "4가 1번 나타납니다", "4가 2번 나타납니다"],
-        ["파란색이 노란색보다 작습니다","파란색이 보라색보다 작습니다","노란색이 보라색보다 작습니다","파란색이 노란색과 같습니다","파란색이 보라색과 같습니다","노란색이 보라색과 같습니다","파란색이 노란색보다 큽니다","파란색이 보라색보다 큽니다","노란색이 보라색보다 큽니다"]
-        
-    ]    
+        ["파란색이 노란색보다 작습니다","파란색이 보라색보다 작습니다","노란색이 보라색보다 작습니다","파란색이 노란색과 같습니다","파란색이 보라색과 같습니다","노란색이 보라색과 같습니다","파란색이 노란색보다 큽니다","파란색이 보라색보다 큽니다","노란색이 보라색보다 큽니다"]   
+    ]
+    
+    creteria_link_list: list[list[int]] = [
+        [1, 16],
+        [25, 3, 18], 
+        [28, 8, 21],
+        [29, 9, 138],
+        [34, 37],
+        [35, 38],
+        [36, 39],
+        [40, 41, 42],
+        [46, 47, 48],
+        [49, 50, 51],
+        [139, 89, 92],
+        [140, 90, 93],
+        [141, 91, 94],
+        [116, 117, 118],
+        [113, 114, 115],
+        [131, 132],
+        [85, 86, 87, 88],
+        [55, 56],
+        [137, 100, 138],
+        [119, 120, 121],
+        [81, 82],
+        [133, 134, 135],
+        [74, 60, 67],
+        [0, 84, 83],
+        [122, 123, 124],
+        [25, 28, 31],
+        [26, 29, 32],
+        [1, 6, 11],
+        [3, 8, 13],
+        [4, 9, 14],
+        [16, 19, 22],
+        [18, 20, 23],
+        [34, 35, 36, 37, 38, 39],
+        [128, 129, 130],
+        [125, 126, 127],
+        [57, 58, 59],
+        [98, 103, 108],
+        [100, 105, 110],
+        [1, 6, 11, 16, 19, 22],
+        [25, 28, 31, 3, 8, 13, 18, 21, 24],
+        [26, 29, 32, 4., 9, 14, 142, 138, 143],
+        [116, 117, 118, 113, 114, 115],
+        [139, 89, 92, 140, 90, 93],
+        [144, 89, 94, 141, 91, 95],
+        [40, 41, 42, 46, 47, 48],
+        [46, 47, 48, 49, 50, 51],
+        [40, 41, 42, 49, 50, 51],
+        [139, 140, 141, 89, 90, 91, 92, 93, 95]
+    ]
     
     games: dict[int, TuringMachineGame]=  { }
 
@@ -249,7 +299,6 @@ class TuringMachine(commands.Cog):
  
 
     def decode(self, _verifier_num_lst: list[int]): #return: [([verifier, verifier, ...], (t, s, c)),([verifier, verifier, ...], (t, s, c)),([verifier, verifier, ...], (t, s, c)),...]
-        
         def all_creteria_comb(_verifier_num_lst: list[int]):
             result=[]
             for i in _verifier_num_lst:
@@ -422,6 +471,14 @@ class TuringMachine(commands.Cog):
                     embed=discord.Embed(title=f"검증기 {alpha[i]} 후보", color=0xfebd11)
                     embed.set_image(url=f"https://turingmachine.info/images/criteriacards/KR/TM_GameCards_KR-{str(verifier_num_list[i]).zfill(2)}.png")
                     await thread.send(embed=embed)
+                    
+    async def send_creteria_image(self, thread: discord.Thread, verifiers: list[Verifier], id: int):
+        game=self.games[id]
+        alpha="ABCDEF"
+        for i in range(len(verifiers)):
+            embed=discord.Embed(title=f"검증기 {alpha[i]}", color=game.embed_color())
+            embed.set_image(url=f"https://turingmachine.info/images/laws//KR/{str(self.creteria_link_list[verifiers[i].verifier_num-1][verifiers[i].creteria_num]).zfill(2)}_Mini_KR.jpg")
+            await thread.send(embed=embed)
 
     @app_commands.command(name="튜링머신", description="새로운 튜링머신 게임을 모집합니다.\n(모드 기본값: 클래식)")    
     @app_commands.describe(mode="모드(클래식, 익스트림)")
@@ -542,7 +599,6 @@ class TuringMachine(commands.Cog):
                 view=ui.View()
                 view.add_item(btn_command_help)
                 view.add_item(btn_game_cancel)
-                
                 if game.mode=="클래식":
                     await _itc.response.edit_message(embed=self.verifier_embed_generater(game.verifiers_num_list, game.mode), view=view)
                 elif game.mode=="익스트림":
@@ -720,12 +776,18 @@ class TuringMachine(commands.Cog):
             if "추리" not in game.response:
                 if "성공" in game.response:
                     await itc.response.send_message(embed=self.game_end_generator(id))
+                    msg = await itc.original_response()
+                    thread = await msg.create_thread(name="조건 이미지") 
+                    await self.send_creteria_image(thread, game.verifiers_list, id)
                     del self.games[itc.channel.id]
                 elif "실패" in game.response and "계속" in game.response:
                     await itc.response.send_message(f"{game.print_failed_mention()}님이 탈락했습니다. 게임을 이어갑니다.\n다음 임시 코드를 설정해주세요.")
                     game.next_round()
                 elif "실패" in game.response and "계속" not in game.response:
                     await itc.response.send_message(embed=self.game_end_generator(id))
+                    msg = await itc.original_response()
+                    thread = await msg.create_thread(name="조건 이미지") 
+                    await self.send_creteria_image(thread, game.verifiers_list, id)
                     del self.games[itc.channel.id]
                 else:
                     await itc.response.send_message("모두가 정답을 알아내지 못했습니다. 게임을 이어갑니다.\n다음 임시 코드를 설정해주세요.")
@@ -754,12 +816,18 @@ class TuringMachine(commands.Cog):
             if "추리" not in game.response:
                 if "성공" in game.response:
                     await itc.response.send_message(embed=self.game_end_generator(id))
+                    msg = await itc.original_response()
+                    thread = await msg.create_thread(name="조건 이미지") 
+                    await self.send_creteria_image(thread, game.verifiers_list, id)
                     del self.games[itc.channel.id]
                 elif "실패" in game.response and "계속" in game.response:
                     await itc.response.send_message(f"{game.print_failed_mention()}님이 탈락했습니다. 게임을 이어갑니다.\n다음 임시 코드를 설정해주세요.")
                     game.next_round()
                 elif "실패" in game.response and "계속" not in game.response:
                     await itc.response.send_message(embed=self.game_end_generator(id))
+                    msg = await itc.original_response()
+                    thread = await msg.create_thread(name="조건 이미지") 
+                    await self.send_creteria_image(thread, game.verifiers_list, id)
                     del self.games[itc.channel.id]
                 else:
                     await itc.response.send_message("모두가 정답을 알아내지 못했습니다. 게임을 이어갑니다.\n다음 임시 코드를 설정해주세요.")
